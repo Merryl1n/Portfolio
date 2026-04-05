@@ -1,0 +1,8 @@
+It is a basic ability system with; 
+- the client side input script that checks which key the player cicked and if it is tied to an ability
+- the main server side scipt that acts as the engine for this system, appropriately calling functions
+- the abilityHandler module script that just stores the functions on how the ability is called
+- the base ability that has all the common funtions of all abilities like cooldown, activate, etc
+- and the individual ability module script that holds the function on how the ability would behave.
+
+Enjoy

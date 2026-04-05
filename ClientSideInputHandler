@@ -1,0 +1,12 @@
+--// Client Side Ability Input Handler
+local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local AbilityFired = ReplicatedStorage:WaitForChild("AbilityFired")
+local player = game.Players.LocalPlayer
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    
+    AbilityFired:FireServer(input.KeyCode)
+end)

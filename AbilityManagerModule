@@ -1,0 +1,49 @@
+--// Ability Manager module
+local AbilityManager = {}
+
+local AbilityData = require(game.ReplicatedStorage.Shared.AbilityData)
+local BaseAbility = require(game.ServerScriptService.Modules.BaseAbility)
+local AbilitesFolder = game.ServerScriptService.Modules.Abilities
+
+AbilityManager.__index = AbilityManager
+
+function AbilityManager.New(player, meter)
+    local self = setmetatable({}, AbilityManager)
+    self.player = player
+    self.meter = meter
+    self.loadedAbilities = {}
+    return self
+end
+
+function AbilityManager:Setup()
+    for _, abilityModule in pairs(AbilitesFolder:GetChildren()) do
+	    if abilityModule:IsA("ModuleScript") then
+            self.loadedAbilities[abilityModule.Name] = require(abilityModule)
+        end
+    end
+end
+
+function AbilityManager:CheckKeybind(keybind)
+    for abilityName, abilityData in pairs(AbilityData) do
+        if abilityData.Keybind == keybind then
+            return abilityName, abilityData
+        end
+    end
+
+    return self.keybind == keybind
+end
+
+function AbilityManager:ActivateAbility(keybind)
+    local abilityName, abilityData= self:CheckKeybind(keybind)
+    if abilityName then
+        local ability = self.loadedAbilities[abilityName]
+        if ability then
+            local instance = ability.New(self.meter)
+            instance:Activate(self.player)
+        end
+    end 
+    -- sends the bleh
+
+end
+
+return AbilityManager

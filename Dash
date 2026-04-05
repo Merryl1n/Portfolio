@@ -1,0 +1,100 @@
+--// Dash ability module
+
+local BaseAbility = require(game.ServerScriptService.Modules.BaseAbility)
+local AbilityData = require(game.ReplicatedStorage.Shared.AbilityData)
+
+local Dash = setmetatable({}, BaseAbility)
+Dash.__index = Dash
+
+function Dash.New(meter)
+    local self = BaseAbility.New(AbilityData.Dash, meter)
+    return setmetatable(self, Dash)
+end
+
+function Dash:Activate(player)
+    if self.onCooldown then return end
+
+    self:showVFX(player)
+    self:PlaySound(player)
+
+    -- actual dash logic here
+    local character = player.Character or player.CharacterAdded:Wait()
+    local rootPart = character:WaitForChild("HumanoidRootPart")
+
+    local dashDuration = self.duration
+    local rate = 0.01
+
+    local br = Instance.new("BodyVelocity")
+	br.MaxForce = Vector3.new(100000, 0, 100000)
+	br.Parent = rootPart
+	
+	local dashStrenght = 100
+	local minimumDashStrength = dashStrenght * 0.15
+	local amountOfIterations = dashDuration / rate
+	local removalOsStrengthPerIterations = dashStrenght / amountOfIterations
+	
+	for i = 0, dashDuration, rate do
+		br.Velocity = rootPart.CFrame.LookVector * dashStrenght
+		
+		if dashStrenght > minimumDashStrength then
+			dashStrenght -= removalOsStrengthPerIterations
+			
+			if dashStrenght < minimumDashStrength then
+				dashStrenght = minimumDashStrength
+			end
+		end
+		
+		task.wait(rate)
+	end
+	
+	br:Destroy()
+
+    task.spawn(function() self:StartCooldown() end)
+
+    task.spawn(function() self:AddTaint() end)
+end
+
+function Dash:showVFX(player)
+    if self.VFX then
+        local character = player.Character or player.CharacterAdded:Wait()
+        local rootPart = character:WaitForChild("HumanoidRootPart")
+
+        local particleFolder = self.VFX:Clone()
+
+        for _, particle in pairs(particleFolder:GetChildren()) do
+            if particle:IsA("ParticleEmitter") then
+                particle.Parent = rootPart
+
+                particle.EmissionDirection = Enum.NormalId.Back
+                particle.Size = NumberSequence.new(2)
+                particle.Lifetime = NumberRange.new(0.02)
+                
+                particle.Enabled = true
+                particle:Emit(30)
+
+                task.delay(self.duration, function()
+                    particle:Destroy()
+                end)
+            end
+        end
+    end
+end
+
+function Dash:PlaySound(player)
+    if self.SFX then
+        local character = player.Character or player.CharacterAdded:Wait()
+        local rootPart = character:WaitForChild("HumanoidRootPart")
+
+        local sound = self.SFX:Clone()
+        sound.Parent = rootPart
+        sound.Volume = .1
+        sound:Play()
+
+        task.delay(sound.TimeLength, function()
+            sound:Destroy()
+        end)
+    end
+    
+end
+
+return Dash

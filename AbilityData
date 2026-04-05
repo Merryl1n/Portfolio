@@ -1,0 +1,14 @@
+--// Ability Data Module
+local AbilityData = {}
+
+AbilityData.Dash = {
+    Name = "Dash",
+    Description = "A quick dash that allows you to evade attacks or close the distance.",
+    Keybind = Enum.KeyCode.LeftShift,
+    Duration = 0.25,
+    Cooldown = 8,
+    TaintAdded = 5,
+    VFX = game.ReplicatedStorage:WaitForChild("Speed"),
+    SFX = game.ReplicatedStorage:WaitForChild("dashSFX")
+}
+return AbilityData

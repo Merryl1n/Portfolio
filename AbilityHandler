@@ -1,0 +1,39 @@
+--// Main Server Handler
+local TaintedModule = require(game.ServerScriptService.Modules.TaintedMeter)
+--local EnergyHandler = require(game.ServerScriptService.Modules.EnergyHandler)
+local AbilityManager = require(game.ServerScriptService.Modules.AbilityManager)
+
+local AbilityFired = game.ReplicatedStorage:WaitForChild("AbilityFired")
+local TaintCounterE = game.ReplicatedStorage:WaitForChild("TaintCounter")
+local TaintResetE = game.ReplicatedStorage:WaitForChild("TaintReset")
+
+local meter = TaintedModule.New()
+--local energyHandler = EnergyHandler.New(meter)
+local managers = {}
+
+--task.spawn(function() energyHandler:StartLoop() end)
+task.spawn(function() meter:drain() end)
+
+game.Players.PlayerAdded:Connect(function(player)
+    local manager = AbilityManager.New(player, meter)
+    manager:Setup()
+    managers[player] = manager
+end)
+
+game.Players.PlayerRemoving:Connect(function(player)
+    managers[player] = nil
+end)
+
+AbilityFired.OnServerEvent:Connect(function(player, keyCode)
+    local manager = managers[player]
+    if manager then
+        manager:ActivateAbility(keyCode)
+    end
+end)
+
+TaintResetE.OnServerEvent:Connect(function(player)
+    print("Tainted Meter is reset for player: " .. player.Name)
+
+    meter:reset()
+    TaintCounterE:FireAllClients(0) 
+end)

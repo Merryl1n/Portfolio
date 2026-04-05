@@ -1,0 +1,51 @@
+--// BaseAbility Module
+local BaseAbility = {}
+
+local TaintCounterE = game.ReplicatedStorage:WaitForChild("TaintCounter")
+local TaintFullE = game.ReplicatedStorage:WaitForChild("TaintFull")
+
+BaseAbility.__index = BaseAbility
+
+function BaseAbility.New(AbilityData, meter)
+    local self = setmetatable({}, BaseAbility)
+    self.name = AbilityData.Name
+    self.description = AbilityData.Description
+    self.duration = AbilityData.Duration
+    self.cooldown = AbilityData.Cooldown
+    self.taintAdded = AbilityData.TaintAdded
+    self.onCooldown = false
+    self.VFX = AbilityData.VFX
+    self.SFX = AbilityData.SFX
+
+    self.meter = meter
+
+    return self
+end
+
+function BaseAbility:Activate(player)
+    -- activate the ability; the other modules will override this
+
+    print(player.Name .. " activated Base Ability!")
+end
+
+function BaseAbility:StartCooldown()
+    self.onCooldown = true
+    task.wait(self.cooldown)
+    self.onCooldown = false
+end
+
+function BaseAbility:AddTaint()
+    self.meter:add(self.taintAdded)
+    print("Added " .. self.taintAdded .. " taint to the meter. Current value: " .. self.meter:getValue())
+
+    local currentValue = self.meter:getValue()
+    TaintCounterE:FireAllClients(currentValue)
+
+     if self.meter:isFull() then
+        print("Tainted Meter is full!")
+
+        TaintFullE:FireAllClients(self.player)
+    end
+end
+
+return BaseAbility
